@@ -2,5 +2,18 @@
 let canvas = document.getElementById('tutorial');
 let ctx = canvas.getContext('2d');
 
-ctx.fillStyle = 'rgb(200, 0, 0)';  // rauður fylltur litur
-ctx.fillRect(10, 10, 50, 50);      // rétthyrningur með rauðum fylltum lit
+const colorYellow = 'rgba(255, 206, 86, 1)';
+const radius = 100;
+const angle = Math.PI / 180;
+
+ctx.beginPath();
+ctx.strokeStyle = colorYellow;
+ctx.fillStyle = colorYellow;
+ctx.lineWidth = 3;
+
+ctx.arc(350, 300, 100, angle * 30, angle * 330, false);
+ctx.lineTo(350, 300);
+ctx.closePath();
+
+ctx.stroke();
+ctx.fillStyle();
