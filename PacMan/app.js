@@ -16,4 +16,4 @@ ctx.lineTo(350, 300);
 ctx.closePath();
 
 ctx.stroke();
-ctx.fillStyle();
+ctx.fill();
