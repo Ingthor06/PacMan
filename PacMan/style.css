@@ -1,4 +1,12 @@
-* {
-    position: absolute;
-    background: black;
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Make the body take full viewport height */
+    margin: 0; /* Remove default margin */
+    background-color: #000; /* Optional: black background for contrast */
+}
+
+#tutorial {
+    border: 1px solid blue; /* Optional: keep the border */
 }
