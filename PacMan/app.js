@@ -11,11 +11,23 @@ if (!canvas) {
     const colorCyan = 'rgba(20, 205, 200, 1)';
     const colorOrange = 'rgba(242, 121, 53, 1)';
     const angle = Math.PI / 180;
+    let isPaused = false;
+    const fullScreenButton =document.getElementById('fullScreenButton');
 
     let pacmanState = {
         direction: "right",
         mouthOpen: true
     };
+
+
+    function freezeGame() {
+        isPaused = true;
+        setTimeout(() => {
+        isPaused = false;
+        gameLoop();
+    }, duration);
+    }
+
 
     function mouthAngles() {
         switch (pacmanState.direction) {
@@ -66,18 +78,60 @@ if (!canvas) {
         draw() {
             this.ctx.beginPath();
             this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+
+            this.ctx.lineTo(this.x + this.radius, this.y + this.radius); 
+            this.ctx.lineTo(this.x - this.radius, this.y + this.radius);
+
+            let footRadius = this.radius / 3;
+            let offsetY = footRadius / 2;
+            for (let i = -1; i <= 1; i++) {
+                this.ctx.arc(this.x + i * footRadius * 2, this.y + this.radius -offsetY, footRadius, Math.PI * 2, 0);
+            }
+
             this.ctx.closePath();
             this.ctx.fillStyle = this.isColliding ? "white" : this.color;
             this.ctx.fill();
+
+            this.drawEyes();
         }
+        
+        drawEyes() {
+            let eyeRadius = this.radius / 4;
+            let eyeOffsetX = this.radius / 3;
+            let eyeOffsetY = this.radius / 3;
+            let pupilRadius = eyeRadius / 2;
+
+            // Left Eye
+            this.ctx.fillStyle = "white";
+            this.ctx.beginPath();
+            this.ctx.arc(this.x - eyeOffsetX, this.y - eyeOffsetY, eyeRadius, 0, Math.PI * 2);
+            this.ctx.fill();
+
+            // Right Eye
+            this.ctx.beginPath();
+            this.ctx.arc(this.x + eyeOffsetX, this.y - eyeOffsetY, eyeRadius, 0, Math.PI * 2);
+            this.ctx.fill();
+
+            // Left Pupil
+            this.ctx.fillStyle = "black";
+            this.ctx.beginPath();
+            this.ctx.arc(this.x - eyeOffsetX - pupilRadius, this.y - eyeOffsetY, pupilRadius, 0, Math.PI * 2);
+            this.ctx.fill();
+
+            // Right Pupil
+            this.ctx.beginPath();
+            this.ctx.arc(this.x + eyeOffsetX - pupilRadius, this.y - eyeOffsetY, pupilRadius, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+
     }
 
-    const pacMan = new PacMan(ctx, 100, 100, 5, 5, 17, colorYellow);
+    const pacMan = new PacMan(ctx, 100, 100, 5, 5, 15, colorYellow);
     const ghosts = [
-        new Ghost(ctx, 200, 300, 17, colorRed),
-        new Ghost(ctx, 300, 400, 17, colorCyan),
-        new Ghost(ctx, 400, 200, 17, colorPink),
-        new Ghost(ctx, 500, 300, 17, colorOrange)
+        new Ghost(ctx, 200, 300, 15, colorRed),
+        new Ghost(ctx, 300, 400, 15, colorCyan),
+        new Ghost(ctx, 400, 200, 15, colorPink),
+        new Ghost(ctx, 500, 300, 15, colorOrange)
     ];
 
     function drawGhosts() {
@@ -109,9 +163,34 @@ if (!canvas) {
         dotsArr.forEach(dot => drawDots.draw(dot.x, dot.y));
     }
 
+    let score = 0;
+    function drawScore() {
+        ctx.font = "20px Arial";
+        ctx.fillStyle = colorWhite;
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        ctx.fillText("Score: " + score, 10, 10);
+    }
+
     function toggleMouth() {
         pacmanState.mouthOpen = !pacmanState.mouthOpen;
     }
+
+
+    function toggleFullScreen() {
+        console.log(document.fullscreenElement);
+        
+        if (!document.fullscreenElement) {
+            canvas.requestFullscreen().catch(err => {
+                alert('Error entering fullscreen: ' + err.message);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    }
+    
+    fullScreenButton.addEventListener('click', toggleFullScreen);
+    
 
     function detectCollisions() {
         let objPacMan = pacMan;
@@ -125,6 +204,21 @@ if (!canvas) {
                 obj.isColliding = true;
             }
         });
+
+        ghosts.forEach(ghost => {
+            if (circleIntersect(pacMan.x, pacMan.y, pacMan.radius, ghost.x, ghost.y, ghost.radius)) {
+                freezeGame(3000); 
+            }
+        });
+
+        dotsArr = dotsArr.filter(dot => {
+            if (circleIntersect(pacMan.x, pacMan.y, pacMan.radius, dot.x, dot.y, 3)) {
+                score++; 
+                return false; 
+            }
+            return true; 
+        });
+        
     }
 
     function circleIntersect(x1, y1, r1, x2, y2, r2) {
@@ -134,12 +228,26 @@ if (!canvas) {
         return distance < r1 + r2;
     }
 
+
+    function gameWinner() {
+        if (dotsArr.length === 0) {
+            alert("Congratulations, you won!");
+            ctx.font = '20px Arial';
+            ctx.fillStyle = 'white';
+            ctx.fillText("You Won!", 10, 30);
+            ctx.fillText("Your Score: " + score, 10, 60);
+        }
+    }
+
+
     function gameLoop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawAllDots();
         drawGhosts();
         pacMan.draw();
+        drawScore();
         detectCollisions();
+        gameWinner();
         requestAnimationFrame(gameLoop);
     }
 
