@@ -77,23 +77,37 @@ if (!canvas) {
 
         draw() {
             this.ctx.beginPath();
-            this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            this.ctx.arc(this.x, this.y, this.radius, Math.PI, 0, false);
 
-            this.ctx.lineTo(this.x + this.radius, this.y + this.radius); 
+            this.ctx.lineTo(this.x + this.radius, this.y + this.radius);
             this.ctx.lineTo(this.x - this.radius, this.y + this.radius);
 
-            let footRadius = this.radius / 3;
+            this.ctx.closePath();
+            
+            
+            let footRadius = this.radius / 2;
             let offsetY = footRadius / 2;
+            let offsetX = footRadius / 2
             for (let i = -1; i <= 1; i++) {
-                this.ctx.arc(this.x + i * footRadius * 2, this.y + this.radius -offsetY, footRadius, Math.PI * 2, 0);
+                this.ctx.arc(this.x + i / 2* footRadius * 2, this.y + this.radius -offsetY, footRadius,Math.PI * 2 ,Math.PI, false);
             }
 
+        
             this.ctx.closePath();
             this.ctx.fillStyle = this.isColliding ? "white" : this.color;
             this.ctx.fill();
 
             this.drawEyes();
         }
+
+        drawBody() {
+            this.ctx.beginPath();
+            this.ctx.fillRect(this.x, this.y, this.radius, this.radius);
+            this.ctx.fillStyle = this.color;
+            this.ctx.fill();
+
+        }
+
         
         drawEyes() {
             let eyeRadius = this.radius / 4;
@@ -125,6 +139,9 @@ if (!canvas) {
         }
 
     }
+
+    let ghostPositionX = Math.floor(Math.random() * 600) + 50;
+    let ghostPositionY = Math.floor(Math.random() * 600) + 50;
 
     const pacMan = new PacMan(ctx, 100, 100, 5, 5, 15, colorYellow);
     const ghosts = [
@@ -162,6 +179,17 @@ if (!canvas) {
     function drawAllDots() {
         dotsArr.forEach(dot => drawDots.draw(dot.x, dot.y));
     }
+
+
+    let lives = 3;
+    function drawLives() {
+        ctx.font = "20px Arial";
+        ctx.fillStyle = colorWhite;
+        ctx.textAlign = "right";
+        ctx.textBaseline = "top";
+        ctx.fillText("❤️" + lives, 590, 10);
+    }
+
 
     let score = 0;
     function drawScore() {
@@ -207,7 +235,12 @@ if (!canvas) {
 
         ghosts.forEach(ghost => {
             if (circleIntersect(pacMan.x, pacMan.y, pacMan.radius, ghost.x, ghost.y, ghost.radius)) {
-                freezeGame(3000); 
+                if (!ghost.hasGhostLife) {
+                    lives--;
+                    ghost.hasGhostLife = true;
+                }
+            }else {
+                ghost.hasGhostLife = false;
             }
         });
 
@@ -231,12 +264,24 @@ if (!canvas) {
 
     function gameWinner() {
         if (dotsArr.length === 0) {
-            alert("Congratulations, you won!");
-            ctx.font = '20px Arial';
-            ctx.fillStyle = 'white';
-            ctx.fillText("You Won!", 10, 30);
-            ctx.fillText("Your Score: " + score, 10, 60);
+            ctx.font = '50px Arial';
+            ctx.fillStyle = 'green';
+            ctx.fillText("You Won!", 400, 250);
+            ctx.font = '30px Arial';
+            ctx.fillText("Your Score: " + score, 400, 300);
         }
+    }
+
+    function gameLoser() {
+        if (lives < 1) {
+            
+            ctx.font = '50px Arial';
+            ctx.fillStyle = 'red';
+            ctx.fillText("You Lost!", 400, 250);
+            ctx.font = '30px Arial';
+            ctx.fillText("Your Score: " + score, 400, 300);
+            freezeGame(1000);
+            }
     }
 
 
@@ -246,8 +291,10 @@ if (!canvas) {
         drawGhosts();
         pacMan.draw();
         drawScore();
+        drawLives();
         detectCollisions();
         gameWinner();
+        gameLoser();
         requestAnimationFrame(gameLoop);
     }
 
