@@ -11,12 +11,13 @@ if (!canvas) {
     const colorCyan = 'rgba(20, 205, 200, 1)';
     const colorOrange = 'rgba(242, 121, 53, 1)';
     const angle = Math.PI / 180;
+    let tileSize = 30;
     let isPaused = false;
     const fullScreenButton =document.getElementById('fullScreenButton');
 
     let pacmanState = {
         direction: "right",
-        mouthOpen: true
+        mouthOpen: true,
     };
 
 
@@ -53,6 +54,7 @@ if (!canvas) {
             this.color = color;
             this.isColliding = false;
         }
+        
 
         draw() {
             let { start, end } = mouthAngles();
@@ -63,6 +65,8 @@ if (!canvas) {
             this.ctx.fillStyle = this.color;
             this.ctx.fill();
         }
+
+        
     }
 
     class Ghost {
@@ -74,59 +78,49 @@ if (!canvas) {
             this.color = color;
             this.isColliding = false;
         }
-
+    
         draw() {
             this.ctx.beginPath();
             this.ctx.arc(this.x, this.y, this.radius, Math.PI, 0, false);
-
             this.ctx.lineTo(this.x + this.radius, this.y + this.radius);
-            this.ctx.lineTo(this.x - this.radius, this.y + this.radius);
-
-            this.ctx.closePath();
-            
-            
-            let footRadius = this.radius / 2;
-            let offsetY = footRadius / 2;
-            let offsetX = footRadius / 2
-            for (let i = -1; i <= 1; i++) {
-                this.ctx.arc(this.x + i / 2* footRadius * 2, this.y + this.radius -offsetY, footRadius,Math.PI * 2 ,Math.PI, false);
+    
+            // Draw feet smoothly
+            let footRadius = this.radius / 5;
+            let footCount = 3;
+            let footWidth = (this.radius * 2) / footCount;
+    
+            for (let i = 0; i < footCount; i++) {
+                let footX = this.x - this.radius + footWidth * i + footWidth / 2;
+                this.ctx.arc(footX, this.y + this.radius, footRadius, 0, Math.PI, true);
             }
-
-        
+    
+            this.ctx.lineTo(this.x - this.radius, this.y + this.radius);
             this.ctx.closePath();
+    
             this.ctx.fillStyle = this.isColliding ? "white" : this.color;
             this.ctx.fill();
+    
 
+    
             this.drawEyes();
         }
-
-        drawBody() {
-            this.ctx.beginPath();
-            this.ctx.fillRect(this.x, this.y, this.radius, this.radius);
-            this.ctx.fillStyle = this.color;
-            this.ctx.fill();
-
-        }
-
-        
+    
         drawEyes() {
             let eyeRadius = this.radius / 4;
             let eyeOffsetX = this.radius / 3;
             let eyeOffsetY = this.radius / 3;
             let pupilRadius = eyeRadius / 2;
 
-            // Left Eye
             this.ctx.fillStyle = "white";
             this.ctx.beginPath();
             this.ctx.arc(this.x - eyeOffsetX, this.y - eyeOffsetY, eyeRadius, 0, Math.PI * 2);
             this.ctx.fill();
 
-            // Right Eye
             this.ctx.beginPath();
             this.ctx.arc(this.x + eyeOffsetX, this.y - eyeOffsetY, eyeRadius, 0, Math.PI * 2);
             this.ctx.fill();
 
-            // Left Pupil
+
             this.ctx.fillStyle = "black";
             this.ctx.beginPath();
             this.ctx.arc(this.x - eyeOffsetX - pupilRadius, this.y - eyeOffsetY, pupilRadius, 0, Math.PI * 2);
@@ -137,23 +131,77 @@ if (!canvas) {
             this.ctx.arc(this.x + eyeOffsetX - pupilRadius, this.y - eyeOffsetY, pupilRadius, 0, Math.PI * 2);
             this.ctx.fill();
         }
-
     }
+    
 
     let ghostPositionX = Math.floor(Math.random() * 600) + 50;
     let ghostPositionY = Math.floor(Math.random() * 600) + 50;
 
-    const pacMan = new PacMan(ctx, 100, 100, 5, 5, 15, colorYellow);
+    const pacMan = new PacMan(ctx, 100, 100, 5, 5, 12, colorYellow);
     const ghosts = [
-        new Ghost(ctx, 200, 300, 15, colorRed),
-        new Ghost(ctx, 300, 400, 15, colorCyan),
-        new Ghost(ctx, 400, 200, 15, colorPink),
-        new Ghost(ctx, 500, 300, 15, colorOrange)
+        new Ghost(ctx, 200, 300, 12, colorRed),
+        new Ghost(ctx, 300, 400, 12, colorCyan),
+        new Ghost(ctx, 400, 200, 12, colorPink),
+        new Ghost(ctx, 500, 300, 12, colorOrange)
     ];
 
     function drawGhosts() {
         ghosts.forEach(ghost => ghost.draw());
     }
+
+
+
+    class PacManGameMap {
+        constructor(ctx, width, height, tileSize) {
+            this.ctx = ctx;
+            this.width = width;
+            this.height = height;
+            this.tileSize = tileSize;
+            this.map = [
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                [1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+                [1, 0, 2, 0, 1, 0, 2, 0, 0, 1, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+                [1, 0, 2, 0, 1, 0, 2, 0, 0, 1, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+                [1, 0, 2, 0, 1, 0, 2, 0, 0, 1, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            ];
+        }
+    
+        drawMap() {
+            this.map.forEach((row, y) => {
+                row.forEach((tile, x) => {
+                    if (tile === 1) {
+                        this.ctx.fillStyle = "blue"; // Wall color
+                        this.ctx.fillRect(x * this.tileSize, y * this.tileSize, this.tileSize, this.tileSize);
+                    } else if (tile === 0) {
+                        this.ctx.fillStyle = "white"; // Empty space color
+                        this.ctx.beginPath();
+                        this.ctx.arc(x * this.tileSize + this.tileSize / 2, y * this.tileSize + this.tileSize / 2, 3, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    } else if (tile === 2) {
+                        this.ctx.fillStyle = "gold"; // Dot color
+                        this.ctx.beginPath();
+                        this.ctx.arc(x * this.tileSize + this.tileSize / 2, y * this.tileSize + this.tileSize / 2, 5, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                });
+            });
+        }
+    }
+    let gameMap = new PacManGameMap(ctx, canvas.width, canvas.height, tileSize);
+    
+    
+
+
 
     const drawDots = {
         radius: 3,
@@ -169,7 +217,7 @@ if (!canvas) {
 
     let dotsArr = [];
     function generateDots() {
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < 30; i++) {
             let x = Math.floor(Math.random() * 600) + 50;
             let y = Math.floor(Math.random() * 600) + 50;
             dotsArr.push({ x, y });
@@ -218,7 +266,9 @@ if (!canvas) {
     }
     
     fullScreenButton.addEventListener('click', toggleFullScreen);
+
     
+
 
     function detectCollisions() {
         let objPacMan = pacMan;
@@ -235,11 +285,13 @@ if (!canvas) {
 
         ghosts.forEach(ghost => {
             if (circleIntersect(pacMan.x, pacMan.y, pacMan.radius, ghost.x, ghost.y, ghost.radius)) {
+                
                 if (!ghost.hasGhostLife) {
                     lives--;
                     ghost.hasGhostLife = true;
                 }
             }else {
+                
                 ghost.hasGhostLife = false;
             }
         });
@@ -280,18 +332,21 @@ if (!canvas) {
             ctx.fillText("You Lost!", 400, 250);
             ctx.font = '30px Arial';
             ctx.fillText("Your Score: " + score, 400, 300);
-            freezeGame(1000);
             }
+        
     }
 
 
     function gameLoop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
         drawAllDots();
+        gameMap.drawMap();
         drawGhosts();
         pacMan.draw();
         drawScore();
         drawLives();
+        
         detectCollisions();
         gameWinner();
         gameLoser();
