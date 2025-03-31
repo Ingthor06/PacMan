@@ -33,7 +33,7 @@ https://github.com/Ingthor06/PacMan.git
   
 + 4️⃣ Run the Project ▶️
   + Example for Javascript
-    recommended Virtual Studio Code extension (Open In Browser)[https://marketplace.visualstudio.com/items?itemName=techer.open-in-browser]
+    recommended Virtual Studio Code extension [Open In Browser](https://marketplace.visualstudio.com/items?itemName=techer.open-in-browser)
     open html file in default browser and start playing!
 
 + Example for JavaScript (Node.js)
@@ -58,5 +58,5 @@ Contributions are welcome! Please follow these steps:
 [Specify the license, e.g., MIT License]
 
 ## 📩 Contact
-Created and coded by: (Ingthor06)[https://github.com/Ingthor06].
+Created and coded by: [Ingthor06](https://github.com/Ingthor06).
 
