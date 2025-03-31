@@ -48,10 +48,10 @@ https://github.com/Ingthor06/PacMan.git
 ## 🤝 Contribution
 Contributions are welcome! Please follow these steps:
 ```sh
-# 1️⃣ Fork the repository.
-# 2️⃣ Create a new branch.
-# 3️⃣ Make your changes and commit them.
-# 4️⃣ Push to your fork and create a pull request.
+1️⃣ Fork the repository.
+2️⃣ Create a new branch.
+3️⃣ Make your changes and commit them.
+4️⃣ Push to your fork and create a pull request.
 ```
 
 ## 📜 License
