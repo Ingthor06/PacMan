@@ -10,6 +10,8 @@ if (!canvas) {
     const colorPink = 'rgba(239, 207, 227, 1)';
     const colorCyan = 'rgba(20, 205, 200, 1)';
     const colorOrange = 'rgba(242, 121, 53, 1)';
+    const colorGreen = 'rgba(0, 128, 0, 1)';
+    const colorBlue = 'rgba(0, 0, 255, 1)';
     const angle = Math.PI / 180;
     let tileSize = 40;
     let isPaused = false;
@@ -50,11 +52,22 @@ if (!canvas) {
             this.y = y;
             this.vx = vx;
             this.vy = vy;
+            this.defaultVx = vx; 
+            this.defaultVy = vy;
             this.radius = radius;
             this.color = color;
             this.isColliding = false;
         }
         
+        boostSpeed() {
+            this.vx = 7;
+            this.vy = 7;
+            
+            setTimeout(() => {
+                this.vx = this.defaultVx;
+                this.vy = this.defaultVy;
+                }, 5000);
+        }
 
         draw() {
             let { start, end } = mouthAngles();
@@ -64,10 +77,12 @@ if (!canvas) {
             this.ctx.closePath();
             this.ctx.fillStyle = this.color;
             this.ctx.fill();
-        }
-
-        
+        }        
     }
+
+
+    
+    
 
     class Ghost {
         constructor(ctx, x, y, radius, color) {
@@ -128,6 +143,46 @@ if (!canvas) {
             this.ctx.arc(this.x + eyeOffsetX - pupilRadius, this.y - eyeOffsetY, pupilRadius, 0, Math.PI * 2);
             this.ctx.fill();
         }
+
+
+
+        drawDying() {
+            this.ctx.beginPath();
+            this.ctx.arc(this.x, this.y, this.radius, Math.PI, 0, false);
+            this.ctx.lineTo(this.x + this.radius, this.y + this.radius);
+    
+            let footRadius = this.radius / 5;
+            let footCount = 3;
+            let footWidth = (this.radius * 2) / footCount;
+    
+            for (let i = 0; i < footCount; i++) {
+                let footX = this.x - this.radius + footWidth * i + footWidth / 2;
+                this.ctx.arc(footX, this.y + this.radius, footRadius, 0, Math.PI, true);
+            }
+    
+            this.ctx.lineTo(this.x - this.radius, this.y + this.radius);
+            this.ctx.closePath();
+    
+            this.ctx.fillStyle = this.isColliding ? "white" : colorBlue;
+            this.ctx.fill();
+        }
+
+
+        drawDyingEyes() {
+            let eyeRadius = this.radius / 4;
+            let eyeOffsetX = this.radius / 3;
+            let eyeOffsetY = this.radius / 3;
+
+            this.ctx.fillStyle = "white";
+            this.ctx.beginPath();
+            this.ctx.arc(this.x - eyeOffsetX, this.y - eyeOffsetY, eyeRadius, 0, Math.PI * 2);
+            this.ctx.fill();
+
+            this.ctx.beginPath();
+            this.ctx.arc(this.x + eyeOffsetX, this.y - eyeOffsetY, eyeRadius, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+
     }
     
 
@@ -161,8 +216,8 @@ if (!canvas) {
                 [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
                 [1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1],
                 [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1],
-                [1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1],
-                [0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                [1, 1, 0, 1, 0, 1, 1, 3, 1, 1, 0, 1, 0, 1, 1],
+                [0, 0, 0, 0, 0, 1, 3, 3, 3, 1, 0, 0, 0, 0, 0],
                 [1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1],
                 [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1],
                 [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1],
@@ -189,9 +244,13 @@ if (!canvas) {
                         this.ctx.arc(x * this.tileSize + this.tileSize / 2, y * this.tileSize + this.tileSize / 2, 3, 0, Math.PI * 2);
                         this.ctx.fill();
                     } else if (tile === 2) {
-                        this.ctx.fillStyle = "gold"; 
+                        this.ctx.fillStyle = "white"; 
                         this.ctx.beginPath();
                         this.ctx.arc(x * this.tileSize + this.tileSize / 2, y * this.tileSize + this.tileSize / 2, 8, 0, Math.PI * 2);
+                        this.ctx.fill();
+                        this.ctx.fillStyle = "gold"; 
+                        this.ctx.beginPath();
+                        this.ctx.arc(x * this.tileSize + this.tileSize / 2, y * this.tileSize + this.tileSize / 2, 6, 0, Math.PI * 2);
                         this.ctx.fill();
                     }
                 });
@@ -246,7 +305,7 @@ if (!canvas) {
         ctx.fillStyle = colorWhite;
         ctx.textAlign = "left";
         ctx.textBaseline = "top";
-        ctx.fillText("Score: " + score, 10, 10);
+        ctx.fillText("Score: " + score+0, 10, 10);
     }
 
     function toggleMouth() {
@@ -273,9 +332,39 @@ if (!canvas) {
 
     function detectCollisions() {
         let objPacMan = pacMan;
-        let gameObjects = [...dotsArr, ...ghosts];
+        let gameObjects = [...ghosts];
         objPacMan.isColliding = false;
         gameObjects.forEach(obj => obj.isColliding = false);
+
+        gameMap.map.forEach((row, y) => {
+            row.forEach((tile, x) => {
+                if (tile === 2 && circleIntersect(objPacMan.x, objPacMan.y, objPacMan.radius, x * tileSize + tileSize / 2, y * tileSize + tileSize / 2, 6)) {
+                    pacMan.boostSpeed();  
+                    gameMap.map[y][x] = 0;  
+                    
+                }
+            });
+        });
+
+
+        
+        gameMap.map.forEach((row, y) => {
+            row.forEach((tile, x) => {
+                if (tile === 1 && circleIntersect(objPacMan.x, objPacMan.y, objPacMan.radius, x * tileSize + tileSize / 2, y * tileSize + tileSize / 2, 6)) {
+
+                }
+            });
+        });
+
+        gameMap.map.forEach((row, y) => {
+            row.forEach((tile, x) => {
+                if (tile === 0 && circleIntersect(objPacMan.x, objPacMan.y, objPacMan.radius, x * tileSize + tileSize / 2, y * tileSize + tileSize / 2, 6)) {
+                    score++;
+                    gameMap.map[y][x] = -1;   
+                }
+            });
+        });
+
 
         gameObjects.forEach(obj => {
             if (circleIntersect(objPacMan.x, objPacMan.y, objPacMan.radius, obj.x, obj.y, obj.radius || 3)) {
@@ -297,13 +386,6 @@ if (!canvas) {
             }
         });
 
-        dotsArr = dotsArr.filter(dot => {
-            if (circleIntersect(pacMan.x, pacMan.y, pacMan.radius, dot.x, dot.y, 3)) {
-                score++; 
-                return false; 
-            }
-            return true; 
-        });
         
     }
 
@@ -316,23 +398,31 @@ if (!canvas) {
 
 
     function gameWinner() {
-        if (dotsArr.length === 0) {
-            ctx.font = '50px Arial';
+        let remainingDots = 0;
+        gameMap.map.forEach((row, y) => {
+            row.forEach((tile, x) => {
+                if (tile === 0) {
+                    remainingDots++;
+                }
+            });
+        });
+        if (remainingDots < 1) {
+            ctx.font = '70px Arial';
             ctx.fillStyle = 'green';
-            ctx.fillText("You Won!", 400, 250);
+            ctx.fillText("You Won!", 450, 250);
             ctx.font = '30px Arial';
-            ctx.fillText("Your Score: " + score, 400, 300);
+            ctx.fillText("Your Score: " + score, 400, 350);
         }
     }
 
     function gameLoser() {
         if (lives < 1) {
             
-            ctx.font = '50px Arial';
+            ctx.font = '70px Arial';
             ctx.fillStyle = 'red';
-            ctx.fillText("You Lost!", 400, 250);
+            ctx.fillText("You Lost!", 450, 250);
             ctx.font = '30px Arial';
-            ctx.fillText("Your Score: " + score, 400, 300);
+            ctx.fillText("Your Score: " + score, 400, 350);
             }
         
     }
@@ -340,14 +430,11 @@ if (!canvas) {
 
     function gameLoop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        drawAllDots();
         gameMap.drawMap();
         drawGhosts();
         pacMan.draw();
         drawScore();
         drawLives();
-        
         detectCollisions();
         gameWinner();
         gameLoser();
