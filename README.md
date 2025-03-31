@@ -17,9 +17,9 @@ Ensure you have the following installed before proceeding:
 ## 🚀 Step-by-Step Setup
 
 - 1️⃣ Clone the Repository 🖥️
-```sh
-https://github.com/Ingthor06/PacMan.git
-```
+  ```sh
+  https://github.com/Ingthor06/PacMan.git
+  ```
 
 + 2️⃣ Navigate to the Project Directory 📂  
   ```sh
