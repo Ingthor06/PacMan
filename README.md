@@ -16,18 +16,18 @@ Ensure you have the following installed before proceeding:
 
 ## 🚀 Step-by-Step Setup
 
+- 1️⃣ Clone the Repository 🖥️
 ```sh
-# 1️⃣ Clone the Repository 🖥️
 https://github.com/Ingthor06/PacMan.git
 ```
 
 + 2️⃣ Navigate to the Project Directory 📂  
-  ```
+  ```sh
   cd pacman
   ```
   
 + 3️⃣ Example for Node.js 📥
-  ```
+  ```sh
   npm install
   ```
   
@@ -37,7 +37,7 @@ https://github.com/Ingthor06/PacMan.git
     open html file in default browser and start playing!
 
 + Example for JavaScript (Node.js)
-  ```
+  ```sh
   npm start in addition
   ```
 
