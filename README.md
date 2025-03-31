@@ -19,24 +19,31 @@ Ensure you have the following installed before proceeding:
 ```sh
 # 1️⃣ Clone the Repository 🖥️
 https://github.com/Ingthor06/PacMan.git
-
-# 2️⃣ Navigate to the Project Directory 📂
-cd pacman
-
-# 3️⃣ Example for Node.js 📥
-npm install
-
-# 4️⃣ Run the Project ▶️
-# Example for Javascript
-recommended Virtual Studio Code extension (Open In Browser)[https://marketplace.visualstudio.com/items?itemName=techer.open-in-browser]
-open html file in default browser and start playing!
-
-# Example for JavaScript (Node.js)
-npm start in addition
-
-# 5️⃣ Play the Game! 🎉
-# Once the project is running, follow the on-screen instructions to play PacMan.
 ```
+
++ 2️⃣ Navigate to the Project Directory 📂  
+  ```
+  cd pacman
+  ```
+  
++ 3️⃣ Example for Node.js 📥
+  ```
+  npm install
+  ```
+  
++ 4️⃣ Run the Project ▶️
+  + Example for Javascript
+    recommended Virtual Studio Code extension (Open In Browser)[https://marketplace.visualstudio.com/items?itemName=techer.open-in-browser]
+    open html file in default browser and start playing!
+
++ Example for JavaScript (Node.js)
+  ```
+  npm start in addition
+  ```
+
++ 5️⃣ Play the Game! 🎉
+  + Once the project is running, follow the on-screen instructions to play PacMan.
+
 
 ## 🤝 Contribution
 Contributions are welcome! Please follow these steps:
@@ -51,5 +58,5 @@ Contributions are welcome! Please follow these steps:
 [Specify the license, e.g., MIT License]
 
 ## 📩 Contact
-Created and coded by: [https://github.com/Ingthor06].
+Created and coded by: (Ingthor06)[https://github.com/Ingthor06].
 
