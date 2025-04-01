@@ -91,6 +91,7 @@ if (!canvas) {
             this.y = y;
             this.radius = radius;
             this.color = color;
+            this.isDying = false
             this.isColliding = false;
         }
     
@@ -147,27 +148,65 @@ if (!canvas) {
 
 
         drawDying() {
+            if (!this.isDying) return; 
+        
             this.ctx.beginPath();
             this.ctx.arc(this.x, this.y, this.radius, Math.PI, 0, false);
             this.ctx.lineTo(this.x + this.radius, this.y + this.radius);
-    
+        
             let footRadius = this.radius / 5;
             let footCount = 3;
             let footWidth = (this.radius * 2) / footCount;
-    
+        
             for (let i = 0; i < footCount; i++) {
                 let footX = this.x - this.radius + footWidth * i + footWidth / 2;
                 this.ctx.arc(footX, this.y + this.radius, footRadius, 0, Math.PI, true);
             }
-    
+        
             this.ctx.lineTo(this.x - this.radius, this.y + this.radius);
             this.ctx.closePath();
-    
-            this.ctx.fillStyle = this.isColliding ? "white" : colorBlue;
+        
+            this.ctx.fillStyle = "blue";
             this.ctx.fill();
+        
+            let mouthWidth = this.radius;
+            let mouthHeight = this.radius / 3;
+            let mouthX = this.x - mouthWidth / 2;
+            let mouthY = this.y + this.radius / 4;
+            let step = mouthWidth / 4;
+        
+            this.ctx.beginPath();
+            this.ctx.moveTo(mouthX, mouthY);
+            for (let i = 1; i <= 4; i++) {
+                let x = mouthX + i * step;
+                let y = (i % 2 === 0) ? mouthY : mouthY + mouthHeight;
+                this.ctx.lineTo(x, y);
+            }
+        
+            this.ctx.strokeStyle = "white";  
+            this.ctx.lineWidth = 2;  
+            this.ctx.stroke();
+        
+            this.drawDyingEyes();
+        }
+        
+        
+        onCollisionWithTile2() {
+            if (!this.isDying) {
+                this.isDying = true;
+                this.isColliding = true;
+    
+                setTimeout(() => {
+                    this.isDying = false;
+                    this.isColliding = false;
+                }, 5000);
+            }
         }
 
-
+        
+            
+            
+    
         drawDyingEyes() {
             let eyeRadius = this.radius / 4;
             let eyeOffsetX = this.radius / 3;
@@ -201,6 +240,9 @@ if (!canvas) {
         ghosts.forEach(ghost => ghost.draw());
     }
 
+    function drawDyingGhosts() {
+        ghosts.forEach(ghost => ghost.onCollisionWithTile2());
+    }
 
 
     class PacManGameMap {
@@ -335,23 +377,24 @@ if (!canvas) {
         let gameObjects = [...ghosts];
         objPacMan.isColliding = false;
         gameObjects.forEach(obj => obj.isColliding = false);
-
+    
         gameMap.map.forEach((row, y) => {
             row.forEach((tile, x) => {
                 if (tile === 2 && circleIntersect(objPacMan.x, objPacMan.y, objPacMan.radius, x * tileSize + tileSize / 2, y * tileSize + tileSize / 2, 6)) {
+                    drawDyingGhosts();
                     pacMan.boostSpeed();  
                     gameMap.map[y][x] = 0;  
-                    
                 }
             });
         });
+    
 
 
         
         gameMap.map.forEach((row, y) => {
             row.forEach((tile, x) => {
                 if (tile === 1 && circleIntersect(objPacMan.x, objPacMan.y, objPacMan.radius, x * tileSize + tileSize / 2, y * tileSize + tileSize / 2, 6)) {
-
+                    
                 }
             });
         });
@@ -411,7 +454,7 @@ if (!canvas) {
             ctx.fillStyle = 'green';
             ctx.fillText("You Won!", 450, 250);
             ctx.font = '30px Arial';
-            ctx.fillText("Your Score: " + score, 400, 350);
+            ctx.fillText("Your Score: " + score+0, 400, 350);
         }
     }
 
@@ -422,7 +465,7 @@ if (!canvas) {
             ctx.fillStyle = 'red';
             ctx.fillText("You Lost!", 450, 250);
             ctx.font = '30px Arial';
-            ctx.fillText("Your Score: " + score, 400, 350);
+            ctx.fillText("Your Score: " + score+0, 400, 350);
             }
         
     }
@@ -432,6 +475,7 @@ if (!canvas) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         gameMap.drawMap();
         drawGhosts();
+        ghosts.forEach(ghost => ghost.drawDying());
         pacMan.draw();
         drawScore();
         drawLives();
