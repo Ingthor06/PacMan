@@ -85,41 +85,60 @@ if (!canvas) {
     
 
     class Ghost {
-        constructor(ctx, x, y, radius, color) {
+        constructor(ctx, x, y, radius, color, speed) {
             this.ctx = ctx;
             this.x = x;
             this.y = y;
             this.radius = radius;
             this.color = color;
-            this.isDying = false
-            this.isColliding = false;
+            this.speed = speed;
+            
+            this.movingHorizontally = Math.random() < 0.5;
+            this.direction = Math.random() < 0.5 ? 1 : -1;
+        }
+        
+    
+        move() {
+            if (this.movingHorizontally) {
+                
+                this.x += this.speed * this.direction;
+                if (this.x - this.radius <= 0 || this.x + this.radius >= canvas.width) {
+                    this.direction *= -1;
+                    this.movingHorizontally = false; 
+                }
+            } else {
+               
+                this.y += this.speed * this.direction;
+                if (this.y - this.radius <= 0 || this.y + this.radius >= canvas.height) {
+                    this.direction *= -1;
+                    this.movingHorizontally = true; 
+                }
+            }
         }
     
+
         draw() {
             this.ctx.beginPath();
             this.ctx.arc(this.x, this.y, this.radius, Math.PI, 0, false);
             this.ctx.lineTo(this.x + this.radius, this.y + this.radius);
-    
+            
             let footRadius = this.radius / 5;
             let footCount = 3;
             let footWidth = (this.radius * 2) / footCount;
-    
+            
             for (let i = 0; i < footCount; i++) {
                 let footX = this.x - this.radius + footWidth * i + footWidth / 2;
                 this.ctx.arc(footX, this.y + this.radius, footRadius, 0, Math.PI, true);
             }
-    
+            
             this.ctx.lineTo(this.x - this.radius, this.y + this.radius);
             this.ctx.closePath();
-    
-            this.ctx.fillStyle = this.isColliding ? "white" : this.color;
+            this.ctx.fillStyle = this.color;
             this.ctx.fill();
-    
-
-    
             this.drawEyes();
+
         }
-    
+
         drawEyes() {
             let eyeRadius = this.radius / 4;
             let eyeOffsetX = this.radius / 3;
@@ -221,20 +240,20 @@ if (!canvas) {
             this.ctx.arc(this.x + eyeOffsetX, this.y - eyeOffsetY, eyeRadius, 0, Math.PI * 2);
             this.ctx.fill();
         }
-
     }
+
+    const ghosts = [
+        new Ghost(ctx, 300, 220, 15, colorRed, 0.8),
+        new Ghost(ctx, 260, 300, 15, colorCyan, 0.8),
+        new Ghost(ctx, 300, 300, 15, colorPink, 0.8),
+        new Ghost(ctx, 340, 300, 15, colorOrange, 0.8)
+    ];
     
 
     let ghostPositionX = Math.floor(Math.random() * 600) + 50;
     let ghostPositionY = Math.floor(Math.random() * 600) + 50;
 
     const pacMan = new PacMan(ctx, 300, 380, 5, 5, 15, colorYellow);
-    const ghosts = [
-        new Ghost(ctx, 300, 220, 15, colorRed),
-        new Ghost(ctx, 260, 300, 15, colorCyan),
-        new Ghost(ctx, 300, 300, 15, colorPink),
-        new Ghost(ctx, 340, 300, 15, colorOrange)
-    ];
 
     function drawGhosts() {
         ghosts.forEach(ghost => ghost.draw());
@@ -374,6 +393,7 @@ if (!canvas) {
 
     function detectCollisions() {
         let objPacMan = pacMan;
+        let objGhost = ghosts;
         let gameObjects = [...ghosts];
         objPacMan.isColliding = false;
         gameObjects.forEach(obj => obj.isColliding = false);
@@ -389,6 +409,7 @@ if (!canvas) {
         });
     
 
+        
 
         
         gameMap.map.forEach((row, y) => {
@@ -429,6 +450,7 @@ if (!canvas) {
             }
         });
 
+        
         
     }
 
@@ -472,18 +494,25 @@ if (!canvas) {
 
 
     function gameLoop() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        gameMap.drawMap();
-        drawGhosts();
-        ghosts.forEach(ghost => ghost.drawDying());
-        pacMan.draw();
-        drawScore();
-        drawLives();
-        detectCollisions();
-        gameWinner();
-        gameLoser();
-        requestAnimationFrame(gameLoop);
+        if (!isPaused) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            gameMap.drawMap();
+            pacMan.draw();
+            drawScore();
+            drawLives();
+            detectCollisions();
+            gameWinner();
+            gameLoser();
+            ghosts.forEach(ghost => {
+                ghost.move(gameMap, tileSize);
+                ghost.draw(ghost);
+            });
+            ghosts.forEach(ghost => ghost.drawDying());
+            requestAnimationFrame(gameLoop);
+        }
     }
+
+
 
     document.addEventListener('keydown', (event) => {
         switch (event.key) {
@@ -506,7 +535,6 @@ if (!canvas) {
         }
     });
 
-    generateDots();
     gameLoop();
     setInterval(toggleMouth, 100);
 }
