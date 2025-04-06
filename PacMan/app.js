@@ -13,6 +13,10 @@ if (!canvas) {
     const colorGreen = 'rgba(0, 128, 0, 1)';
     const colorBlue = 'rgba(0, 0, 255, 1)';
     const angle = Math.PI / 180;
+    const chompSound = new Audio('C:\\Users\\Notandi\\PacMan\\PacMan\\sounds\\pacman_chomp.wav');
+    const deathSound = new Audio('C:\\Users\\Notandi\\PacMan\\PacMan\\sounds\\pacman_death.wav');
+    const startSound = new Audio('C:\\Users\\Notandi\\PacMan\\PacMan\\sounds\\pacman_beginning.wav');
+    const boostSound = new Audio('C:\\Users\\Notandi\\PacMan\\PacMan\\sounds\\pacman_intermission.wav')
     let tileSize = 40;
     let isPaused = false;
     const fullScreenButton =document.getElementById('fullScreenButton');
@@ -57,17 +61,18 @@ if (!canvas) {
             this.radius = radius;
             this.color = color;
             this.isColliding = false;
+            this.lastDirectionChange = Date.now();
+            this.directions = [
+                { x: 1, y: 0 },  
+                { x: -1, y: 0 }, 
+                { x: 0, y: 1 },  
+                { x: 0, y: -1 }  
+            ];
         }
         
-        boostSpeed() {
-            this.vx = 7;
-            this.vy = 7;
-            
-            setTimeout(() => {
-                this.vx = this.defaultVx;
-                this.vy = this.defaultVy;
-                }, 5000);
-        }
+
+
+        
 
         draw() {
             let { start, end } = mouthAngles();
@@ -92,29 +97,57 @@ if (!canvas) {
             this.radius = radius;
             this.color = color;
             this.speed = speed;
+            this.lastDirectionChange = Date.now();
+            this.directions = [
+                { x: 1, y: 0 },  
+                { x: -1, y: 0 }, 
+                { x: 0, y: 1 },  
+                { x: 0, y: -1 }  
+            ];
+            this.currentDirection = { x: 1, y: 0 };  
+            
+
             
             this.movingHorizontally = Math.random() < 0.5;
             this.direction = Math.random() < 0.5 ? 1 : -1;
         }
         
     
-        move() {
-            if (this.movingHorizontally) {
+        move(gameMap) {
+            if (Date.now() - this.lastDirectionChange > 5000) {
                 
-                this.x += this.speed * this.direction;
-                if (this.x - this.radius <= 0 || this.x + this.radius >= canvas.width) {
-                    this.direction *= -1;
-                    this.movingHorizontally = false; 
-                }
+                let newDir = this.directions[Math.floor(Math.random() * this.directions.length)];
+                this.currentDirection = newDir;
+                this.lastDirectionChange = Date.now();
+            }
+        
+            let nextX = this.x + this.speed * this.currentDirection.x;
+            let nextY = this.y + this.speed * this.currentDirection.y;
+        
+            let wallCheckX = nextX + this.radius * this.currentDirection.x;
+            let wallCheckY = nextY + this.radius * this.currentDirection.y;
+        
+            
+            if (!gameMap.isWallTile(wallCheckX, wallCheckY)) {
+                this.x = nextX;
+                this.y = nextY;
             } else {
-               
-                this.y += this.speed * this.direction;
-                if (this.y - this.radius <= 0 || this.y + this.radius >= canvas.height) {
-                    this.direction *= -1;
-                    this.movingHorizontally = true; 
+                 
+                let possibleDirs = this.directions.filter(d => {
+                    let testX = this.x + d.x * this.radius;
+                    let testY = this.y + d.y * this.radius;
+                    return !gameMap.isWallTile(testX, testY);
+                });
+        
+                if (possibleDirs.length > 0) {
+                    this.currentDirection = possibleDirs[Math.floor(Math.random() * possibleDirs.length)];
                 }
+                this.lastDirectionChange = Date.now();
             }
         }
+        
+        
+        
     
 
         draw() {
@@ -243,17 +276,17 @@ if (!canvas) {
     }
 
     const ghosts = [
-        new Ghost(ctx, 300, 220, 15, colorRed, 0.8),
-        new Ghost(ctx, 260, 300, 15, colorCyan, 0.8),
-        new Ghost(ctx, 300, 300, 15, colorPink, 0.8),
-        new Ghost(ctx, 340, 300, 15, colorOrange, 0.8)
+        new Ghost(ctx, 300, 220, 18, colorRed, 0.8),
+        new Ghost(ctx, 260, 300, 18, colorCyan, 0.8),
+        new Ghost(ctx, 300, 300, 18, colorPink, 0.8),
+        new Ghost(ctx, 340, 300, 18, colorOrange, 0.8)
     ];
     
 
     let ghostPositionX = Math.floor(Math.random() * 600) + 50;
     let ghostPositionY = Math.floor(Math.random() * 600) + 50;
 
-    const pacMan = new PacMan(ctx, 300, 380, 5, 5, 15, colorYellow);
+    const pacMan = new PacMan(ctx, 300, 380, 5, 5, 18, colorYellow);
 
     function drawGhosts() {
         ghosts.forEach(ghost => ghost.draw());
@@ -277,7 +310,7 @@ if (!canvas) {
                 [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
                 [1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1],
                 [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1],
-                [1, 1, 0, 1, 0, 1, 1, 3, 1, 1, 0, 1, 0, 1, 1],
+                [1, 1, 0, 1, 0, 1, 0, 3, 0, 1, 0, 1, 0, 1, 1],
                 [0, 0, 0, 0, 0, 1, 3, 3, 3, 1, 0, 0, 0, 0, 0],
                 [1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1],
                 [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1],
@@ -289,7 +322,22 @@ if (!canvas) {
                 
             ];
         }
-    
+        
+        isWallTile(x, y) {
+            let col = Math.floor(x / this.tileSize);
+            let row = Math.floor(y / this.tileSize);
+        
+            if (
+                row < 0 || row >= this.map.length ||
+                col < 0 || col >= this.map[0].length
+            ) {
+                return true; 
+            }
+        
+            return this.map[row][col] === 1;
+        }
+        
+
         drawMap() {
             this.map.forEach((row, y) => {
                 row.forEach((tile, x) => {
@@ -371,6 +419,7 @@ if (!canvas) {
 
     function toggleMouth() {
         pacmanState.mouthOpen = !pacmanState.mouthOpen;
+        
     }
 
 
@@ -401,8 +450,9 @@ if (!canvas) {
         gameMap.map.forEach((row, y) => {
             row.forEach((tile, x) => {
                 if (tile === 2 && circleIntersect(objPacMan.x, objPacMan.y, objPacMan.radius, x * tileSize + tileSize / 2, y * tileSize + tileSize / 2, 6)) {
+                    boostSound.play();
                     drawDyingGhosts();
-                    pacMan.boostSpeed();  
+                     
                     gameMap.map[y][x] = 0;  
                 }
             });
@@ -415,14 +465,19 @@ if (!canvas) {
         gameMap.map.forEach((row, y) => {
             row.forEach((tile, x) => {
                 if (tile === 1 && circleIntersect(objPacMan.x, objPacMan.y, objPacMan.radius, x * tileSize + tileSize / 2, y * tileSize + tileSize / 2, 6)) {
-                    
+                    // PacMan collides with the wall, stop movement
+                    objPacMan.vx = 0;
+                    objPacMan.vy = 0;
+                    objPacMan.isStopped = true; // Mark as stopped
                 }
             });
         });
+        
 
         gameMap.map.forEach((row, y) => {
             row.forEach((tile, x) => {
                 if (tile === 0 && circleIntersect(objPacMan.x, objPacMan.y, objPacMan.radius, x * tileSize + tileSize / 2, y * tileSize + tileSize / 2, 6)) {
+                    chompSound.play();
                     score++;
                     gameMap.map[y][x] = -1;   
                 }
@@ -441,6 +496,7 @@ if (!canvas) {
             if (circleIntersect(pacMan.x, pacMan.y, pacMan.radius, ghost.x, ghost.y, ghost.radius)) {
                 
                 if (!ghost.hasGhostLife) {
+                    deathSound.play();
                     lives--;
                     ghost.hasGhostLife = true;
                 }
@@ -492,48 +548,113 @@ if (!canvas) {
         
     }
 
+   
+    let isMovingUp = false;
+    let isMovingDown = false;
+    let isMovingLeft = false;
+    let isMovingRight = false;
+
+    pacMan.vx = 1;  // Speed in x direction
+    pacMan.vy = 1;  // Speed in y direction
+
+    // Collision detection logic (same as before) 
+    function checkCollision() {
+        gameMap.map.forEach((row, y) => {
+            row.forEach((tile, x) => {
+                if (tile === 1 && circleIntersect(pacMan.x, pacMan.y, pacMan.radius, x * tileSize + tileSize / 2, y * tileSize + tileSize / 2, 6)) {
+                    // PacMan is about to collide with a wall, so we stop its movement
+                    // Reset velocity if moving into a wall
+                    if (isMovingUp) pacMan.vy = 0;
+                    if (isMovingDown) pacMan.vy = 0;
+                    if (isMovingLeft) pacMan.vx = 0;
+                    if (isMovingRight) pacMan.vx = 0;
+                }
+            });
+        });
+    }
+
+    document.addEventListener('keydown', (event) => {
+        switch (event.key) {
+            case 'ArrowUp':
+                isMovingUp = true;
+                isMovingDown = false;
+                isMovingLeft = false;
+                isMovingRight = false;
+                pacmanState.direction = 'lookUp';
+                break;
+            case 'ArrowDown':
+                isMovingUp = false;
+                isMovingDown = true;
+                isMovingLeft = false;
+                isMovingRight = false;
+                pacmanState.direction = 'lookDown';
+                break;
+            case 'ArrowLeft':
+                isMovingUp = false;
+                isMovingDown = false;
+                isMovingLeft = true;
+                isMovingRight = false;
+                pacmanState.direction = 'lookLeft';
+                break;
+            case 'ArrowRight':
+                isMovingUp = false;
+                isMovingDown = false;
+                isMovingLeft = false;
+                isMovingRight = true;
+                pacmanState.direction = 'lookRight';
+                break;
+        }
+    });
+
+    function movePacMan() {
+        if (isMovingUp) pacMan.y -= pacMan.vy;
+        if (isMovingDown) pacMan.y += pacMan.vy;
+        if (isMovingLeft) pacMan.x -= pacMan.vx;
+        if (isMovingRight) pacMan.x += pacMan.vx;
+    }
+
+    function update() {
+        checkCollision(); // Check for collisions on every frame
+
+        // If not stopped due to collision, update movement
+        if (pacMan.vx !== 0 || pacMan.vy !== 0) {
+            movePacMan(); // Move PacMan if not stopped
+        }
+
+        // Continue updating the game and drawing PacMan, etc.
+    }
+
+    // Assuming a game loop or animation frame calls the `update()` function continuously.
+    setInterval(update, 1000 / 60); // 60 frames per second (you can adjust this)
+
+    
+    
 
     function gameLoop() {
         if (!isPaused) {
+            
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
             gameMap.drawMap();
             pacMan.draw();
+            movePacMan()
             drawScore();
             drawLives();
             detectCollisions();
-            gameWinner();
-            gameLoser();
+            
             ghosts.forEach(ghost => {
                 ghost.move(gameMap, tileSize);
                 ghost.draw(ghost);
             });
             ghosts.forEach(ghost => ghost.drawDying());
+            gameWinner();
+            gameLoser();
             requestAnimationFrame(gameLoop);
         }
     }
 
 
 
-    document.addEventListener('keydown', (event) => {
-        switch (event.key) {
-            case 'ArrowUp':
-                pacMan.y -= pacMan.vy;
-                pacmanState.direction = 'lookUp';
-                break;
-            case 'ArrowDown':
-                pacMan.y += pacMan.vy;
-                pacmanState.direction = 'lookDown';
-                break;
-            case 'ArrowLeft':
-                pacMan.x -= pacMan.vx;
-                pacmanState.direction = 'lookLeft';
-                break;
-            case 'ArrowRight':
-                pacMan.x += pacMan.vx;
-                pacmanState.direction = 'lookRight';
-                break;
-        }
-    });
 
     gameLoop();
     setInterval(toggleMouth, 100);
