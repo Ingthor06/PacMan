@@ -71,7 +71,7 @@ if (!canvas) {
         }
         
 
-
+        
         
 
         draw() {
@@ -460,18 +460,19 @@ if (!canvas) {
     
 
         
-
-        
         gameMap.map.forEach((row, y) => {
             row.forEach((tile, x) => {
-                if (tile === 1 && circleIntersect(objPacMan.x, objPacMan.y, objPacMan.radius, x * tileSize + tileSize / 2, y * tileSize + tileSize / 2, 6)) {
-                    // PacMan collides with the wall, stop movement
-                    objPacMan.vx = 0;
-                    objPacMan.vy = 0;
-                    objPacMan.isStopped = true; // Mark as stopped
+                if (tile === 1 && circleIntersect(pacMan.x, pacMan.y, pacMan.radius, x * tileSize + tileSize / 2, y * tileSize + tileSize / 2, 6)) {
+                    // PacMan is about to collide with a wall, so we stop its movement
+                    // Reset velocity if moving into a wall
+                    if (isMovingUp) pacMan.vy = 0;
+                    if (isMovingDown) pacMan.vy = 0;
+                    if (isMovingLeft) pacMan.vx = 0;
+                    if (isMovingRight) pacMan.vx = 0;
                 }
             });
         });
+       
         
 
         gameMap.map.forEach((row, y) => {
@@ -554,24 +555,10 @@ if (!canvas) {
     let isMovingLeft = false;
     let isMovingRight = false;
 
-    pacMan.vx = 1;  // Speed in x direction
-    pacMan.vy = 1;  // Speed in y direction
+    pacMan.vx = 0.7;  // Speed in x direction
+    pacMan.vy = 0.7;  // Speed in y direction
 
     // Collision detection logic (same as before) 
-    function checkCollision() {
-        gameMap.map.forEach((row, y) => {
-            row.forEach((tile, x) => {
-                if (tile === 1 && circleIntersect(pacMan.x, pacMan.y, pacMan.radius, x * tileSize + tileSize / 2, y * tileSize + tileSize / 2, 6)) {
-                    // PacMan is about to collide with a wall, so we stop its movement
-                    // Reset velocity if moving into a wall
-                    if (isMovingUp) pacMan.vy = 0;
-                    if (isMovingDown) pacMan.vy = 0;
-                    if (isMovingLeft) pacMan.vx = 0;
-                    if (isMovingRight) pacMan.vx = 0;
-                }
-            });
-        });
-    }
 
     document.addEventListener('keydown', (event) => {
         switch (event.key) {
@@ -613,19 +600,6 @@ if (!canvas) {
         if (isMovingRight) pacMan.x += pacMan.vx;
     }
 
-    function update() {
-        checkCollision(); // Check for collisions on every frame
-
-        // If not stopped due to collision, update movement
-        if (pacMan.vx !== 0 || pacMan.vy !== 0) {
-            movePacMan(); // Move PacMan if not stopped
-        }
-
-        // Continue updating the game and drawing PacMan, etc.
-    }
-
-    // Assuming a game loop or animation frame calls the `update()` function continuously.
-    setInterval(update, 1000 / 60); // 60 frames per second (you can adjust this)
 
     
     
